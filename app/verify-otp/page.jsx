@@ -1,8 +1,8 @@
 "use client";
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import api from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
+import { verifyOtp, resendOtp } from "../../lib/services";
 
 function OtpForm() {
   const [otp, setOtp] = useState("");
@@ -15,7 +15,6 @@ function OtpForm() {
   const params = useSearchParams();
   const email = params.get("email");
   const purpose = params.get("purpose");
-
   const endpoint = purpose === "signup" ? "/auth/verify-signup" : "/auth/verify-2fa";
 
   const handleSubmit = async (e) => {
@@ -23,7 +22,7 @@ function OtpForm() {
     setError("");
     setLoading(true);
     try {
-      const { data } = await api.post(endpoint, { email, otp });
+      const { data } = await verifyOtp(endpoint, email, otp);
       saveSession(data.accessToken, data.refreshToken, data.user);
       router.push(data.redirectTo || "/dashboard");
     } catch (err) {
@@ -33,11 +32,11 @@ function OtpForm() {
     }
   };
 
-  const resendOtp = async () => {
+  const handleResend = async () => {
     setError("");
     setMsg("");
     try {
-      await api.post("/auth/resend-otp", { email, purpose });
+      await resendOtp(email, purpose);
       setMsg("OTP resent! Check your email.");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to resend");
@@ -50,28 +49,19 @@ function OtpForm() {
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">
           {purpose === "signup" ? "Verify Your Email" : "Two-Factor Authentication"}
         </h2>
-        <p className="text-center text-sm text-gray-500 mb-6">
-          OTP sent to <strong>{email}</strong>
-        </p>
+        <p className="text-center text-sm text-gray-500 mb-6">OTP sent to <strong>{email}</strong></p>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            placeholder="Enter 6-digit OTP" value={otp} maxLength={6}
+          <input placeholder="Enter 6-digit OTP" value={otp} maxLength={6}
             onChange={(e) => setOtp(e.target.value)} required
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 text-center tracking-widest text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 text-center tracking-widest text-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
           {error && <p className="text-red-500 text-sm">{error}</p>}
           {msg && <p className="text-green-500 text-sm">{msg}</p>}
-          <button
-            type="submit" disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition"
-          >
+          <button type="submit" disabled={loading}
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition">
             {loading ? "Verifying..." : "Verify OTP"}
           </button>
         </form>
-        <button
-          onClick={resendOtp}
-          className="w-full mt-3 text-sm text-blue-500 hover:underline"
-        >
+        <button onClick={handleResend} className="w-full mt-3 text-sm text-blue-500 hover:underline">
           Resend OTP
         </button>
       </div>

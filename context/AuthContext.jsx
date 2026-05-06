@@ -1,9 +1,8 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
-import api from "../lib/api";
 import { setTokens, clearTokens, getAccessToken, getRefreshToken } from "../lib/auth";
+import { getMe, logoutUser } from "../lib/services";
 
 const AuthContext = createContext();
 
@@ -15,7 +14,7 @@ export function AuthProvider({ children }) {
 
   const fetchUser = async () => {
     try {
-      const { data } = await api.get("/auth/me");
+      const { data } = await getMe();
       setUser(data.user);
     } catch {
       clearTokens();
@@ -28,7 +27,6 @@ export function AuthProvider({ children }) {
     fetchUser().finally(() => setLoading(false));
   }, []);
 
-  // listen for session expiry event fired from api.js
   useEffect(() => {
     const handleExpiry = () => setShowSessionModal(true);
     window.addEventListener("session:expired", handleExpiry);
@@ -47,7 +45,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    await api.post("/auth/logout", { refreshToken: getRefreshToken() }).catch(() => {});
+    await logoutUser(getRefreshToken()).catch(() => {});
     clearTokens();
     setUser(null);
   };
@@ -55,7 +53,6 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{ user, saveSession, logout, loading, fetchUser }}>
       {children}
-
       {showSessionModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm text-center">
@@ -64,10 +61,8 @@ export function AuthProvider({ children }) {
             <p className="text-gray-500 text-sm mb-6">
               You have been inactive for a while. Please log in again to continue.
             </p>
-            <button
-              onClick={handleSessionModalConfirm}
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-            >
+            <button onClick={handleSessionModalConfirm}
+              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
               Go to Login
             </button>
           </div>

@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import api from "../../lib/api";
+import { loginUser } from "../../lib/services";
 
 const EyeIcon = ({ open }) => open ? (
   <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -15,12 +15,14 @@ const EyeIcon = ({ open }) => open ? (
   </svg>
 );
 
-export default function Login() {
+function LoginForm() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const params = useSearchParams();
+  const sessionExpired = params.get("reason") === "session_expired";
 
   const handle = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -29,7 +31,7 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      const { data } = await api.post("/auth/login", form);
+      const { data } = await loginUser(form);
       if (data.next === "verify-signup") {
         router.push(`/verify-otp?email=${encodeURIComponent(form.email)}&purpose=signup`);
       } else {
@@ -53,6 +55,11 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Login</h2>
+        {sessionExpired && (
+          <div className="mb-4 px-4 py-3 bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm rounded-lg text-center">
+            ⏱ Your session expired due to inactivity. Please log in again.
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             name="email" placeholder="Email" type="email" onChange={handle} required
@@ -65,19 +72,14 @@ export default function Login() {
               onChange={handle} required
               className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
+            <button type="button" onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
               <EyeIcon open={showPassword} />
             </button>
           </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
-          <button
-            type="submit" disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition"
-          >
+          <button type="submit" disabled={loading}
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition">
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
@@ -85,10 +87,17 @@ export default function Login() {
           <Link href="/forgot-password" className="text-blue-500 hover:underline">Forgot Password?</Link>
         </p>
         <p className="text-center text-sm text-gray-600 mt-2">
-          No account?{" "}
-          <Link href="/register" className="text-blue-500 hover:underline">Register</Link>
+          No account?{" "}<Link href="/register" className="text-blue-500 hover:underline">Register</Link>
         </p>
       </div>
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

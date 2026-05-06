@@ -1,20 +1,20 @@
 "use client";
 import { useEffect, useState } from "react";
-import api from "../../../../lib/api";
+import { getAdminUsers, updateUserRole } from "../../../../lib/services";
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get("/dashboard/admin/users")
+    getAdminUsers()
       .then(({ data }) => setUsers(data.users))
       .finally(() => setLoading(false));
   }, []);
 
   const toggleRole = async (userId, currentRole) => {
     const newRole = currentRole === "admin" ? "user" : "admin";
-    await api.patch(`/dashboard/admin/users/${userId}/role`, { role: newRole });
+    await updateUserRole(userId, newRole);
     setUsers(users.map((u) => u._id === userId ? { ...u, role: newRole } : u));
   };
 
@@ -26,11 +26,9 @@ export default function AdminUsers() {
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
-            <tr>
-              {["Name", "Email", "Role", "Verified", "Action"].map((h) => (
-                <th key={h} className="px-4 py-3">{h}</th>
-              ))}
-            </tr>
+            <tr>{["Name", "Email", "Role", "Verified", "Action"].map((h) => (
+              <th key={h} className="px-4 py-3">{h}</th>
+            ))}</tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {users.map((u) => (
@@ -48,10 +46,8 @@ export default function AdminUsers() {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <button
-                    onClick={() => toggleRole(u._id, u.role)}
-                    className="bg-gray-800 text-white px-3 py-1 rounded-lg text-xs hover:bg-gray-700 transition"
-                  >
+                  <button onClick={() => toggleRole(u._id, u.role)}
+                    className="bg-gray-800 text-white px-3 py-1 rounded-lg text-xs hover:bg-gray-700 transition">
                     Make {u.role === "admin" ? "User" : "Admin"}
                   </button>
                 </td>
