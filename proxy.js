@@ -17,6 +17,10 @@ export function proxy(request) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
+  if (pathname === "/dashboard" && accessToken && userRole === "admin") {
+    return NextResponse.redirect(new URL("/dashboard/admin/users", request.url));
+  }
+
   if (isProtected && !accessToken) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
