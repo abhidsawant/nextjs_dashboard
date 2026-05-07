@@ -1,9 +1,10 @@
 "use client";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth, useRequireAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function DashboardLayout({ children }) {
+  const { loading } = useRequireAuth();
   const { user, logout } = useAuth();
   const router = useRouter();
 
@@ -11,6 +12,12 @@ export default function DashboardLayout({ children }) {
     await logout();
     router.push("/login");
   };
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -21,10 +28,8 @@ export default function DashboardLayout({ children }) {
             <Link href="/dashboard/admin/users" className="hover:text-blue-400 transition">Manage Users</Link>
           )}
         </nav>
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm transition"
-        >
+        <button onClick={handleLogout}
+          className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm transition">
           Logout
         </button>
       </header>

@@ -73,3 +73,28 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
+
+// Client-side auth guard — redirects to /login if not authenticated
+export function useRequireAuth() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) router.replace("/login");
+  }, [user, loading]);
+
+  return { user, loading };
+}
+
+// Client-side admin guard — redirects to /dashboard if not admin
+export function useRequireAdmin() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) router.replace("/login");
+    if (!loading && user && user.role !== "admin") router.replace("/dashboard");
+  }, [user, loading]);
+
+  return { user, loading };
+}

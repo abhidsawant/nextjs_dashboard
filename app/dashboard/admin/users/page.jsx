@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { useRequireAdmin } from "../../../../context/AuthContext";
 import { getAdminUsers, updateUserRole } from "../../../../lib/services";
 
 function SkeletonRow() {
@@ -16,15 +17,17 @@ function SkeletonRow() {
 }
 
 export default function AdminUsers() {
+  const { loading: authLoading } = useRequireAdmin();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return;
     getAdminUsers()
       .then(({ data }) => setUsers(data.users))
       .catch(() => toast.error("Failed to load users"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [authLoading]);
 
   const toggleRole = async (userId, currentRole) => {
     const newRole = currentRole === "admin" ? "user" : "admin";
