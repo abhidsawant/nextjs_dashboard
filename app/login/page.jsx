@@ -2,6 +2,7 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { loginUser } from "../../lib/services";
 
 const EyeIcon = ({ open }) => open ? (
@@ -18,7 +19,6 @@ const EyeIcon = ({ open }) => open ? (
 function LoginForm() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const params = useSearchParams();
@@ -28,7 +28,9 @@ function LoginForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return toast.error("Invalid email format");
+    if (!form.password) return toast.error("Password is required");
+
     setLoading(true);
     try {
       const { data } = await loginUser(form);
@@ -42,9 +44,9 @@ function LoginForm() {
       const msg = err.response?.data?.message || "Login failed";
       if (status === 423) {
         const time = msg.match(/after (.+)/)?.[1];
-        setError(`Account locked. Try again after ${time ? new Date(time).toLocaleTimeString() : "15 minutes"}`);
+        toast.error(`Account locked. Try again after ${time ? new Date(time).toLocaleTimeString() : "15 minutes"}`);
       } else {
-        setError(msg);
+        toast.error(msg);
       }
     } finally {
       setLoading(false);
@@ -61,23 +63,18 @@ function LoginForm() {
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            name="email" placeholder="Email" type="email" onChange={handle} required
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <input name="email" placeholder="Email" type="email" onChange={handle} required
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <div className="relative">
-            <input
-              name="password" placeholder="Password"
+            <input name="password" placeholder="Password"
               type={showPassword ? "text" : "password"}
               onChange={handle} required
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500" />
             <button type="button" onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
               <EyeIcon open={showPassword} />
             </button>
           </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
           <button type="submit" disabled={loading}
             className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition">
             {loading ? "Logging in..." : "Login"}
