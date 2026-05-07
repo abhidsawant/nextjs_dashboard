@@ -54,16 +54,13 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider value={{ user, saveSession, logout, loading, fetchUser }}>
       {children}
       {showSessionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm text-center">
-            <div className="text-4xl mb-3">⏱</div>
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Session Expired</h2>
-            <p className="text-gray-500 text-sm mb-6">
-              You have been inactive for a while. Please log in again to continue.
-            </p>
-            <button onClick={handleSessionModalConfirm}
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
-              Go to Login
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)" }}>
+          <div className="p-8 rounded-3xl w-full max-w-sm text-center" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 25px 50px rgba(0,0,0,0.6)" }}>
+            <div className="text-5xl mb-3">⏱️</div>
+            <h2 className="text-xl font-bold text-gradient mb-2">Session Expired</h2>
+            <p className="text-slate-400 text-sm mb-6">You've been inactive for a while. Please log in again.</p>
+            <button onClick={handleSessionModalConfirm} className="btn-primary">
+              Go to Login 🚀
             </button>
           </div>
         </div>

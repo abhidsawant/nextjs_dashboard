@@ -30,7 +30,6 @@ function LoginForm() {
     e.preventDefault();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return toast.error("Invalid email format");
     if (!form.password) return toast.error("Password is required");
-
     setLoading(true);
     try {
       const { data } = await loginUser(form);
@@ -54,37 +53,48 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Login</h2>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* Dark blobs */}
+      <div className="absolute top-20 left-20 w-80 h-80 rounded-full opacity-20 animate-float" style={{ background: "radial-gradient(circle, #7c3aed, transparent)" }} />
+      <div className="absolute bottom-20 right-20 w-80 h-80 rounded-full opacity-20 animate-float" style={{ background: "radial-gradient(circle, #db2777, transparent)", animationDelay: "1.5s" }} />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full opacity-10 animate-float" style={{ background: "radial-gradient(circle, #2563eb, transparent)", animationDelay: "3s" }} />
+
+      <div className="glass p-8 rounded-3xl w-full max-w-md relative z-10">
+        <div className="text-center mb-8">
+          <div className="text-5xl mb-3">✨</div>
+          <h2 className="text-3xl font-bold text-gradient mb-1">Welcome Back!</h2>
+          <p className="text-slate-400 text-sm">Sign in to continue your journey</p>
+        </div>
+
         {sessionExpired && (
-          <div className="mb-4 px-4 py-3 bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm rounded-lg text-center">
-            ⏱ Your session expired due to inactivity. Please log in again.
+          <div className="mb-4 px-4 py-3 rounded-2xl text-sm text-center" style={{ background: "rgba(234, 179, 8, 0.1)", border: "1px solid rgba(234, 179, 8, 0.2)", color: "#fbbf24" }}>
+            ⏱ Session expired. Please log in again.
           </div>
         )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input name="email" placeholder="Email" type="email" onChange={handle} required
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input name="email" placeholder="📧  Email" type="email" onChange={handle} required className="input-dark" />
           <div className="relative">
-            <input name="password" placeholder="Password"
+            <input name="password" placeholder="🔒  Password"
               type={showPassword ? "text" : "password"}
               onChange={handle} required
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="input-dark pr-12" />
             <button type="button" onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-purple-400 transition">
               <EyeIcon open={showPassword} />
             </button>
           </div>
-          <button type="submit" disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition">
-            {loading ? "Logging in..." : "Login"}
+          <button type="submit" disabled={loading} className="btn-primary">
+            {loading ? "Signing in..." : "Sign In 🚀"}
           </button>
         </form>
-        <p className="text-center text-sm text-gray-600 mt-4">
-          <Link href="/forgot-password" className="text-blue-500 hover:underline">Forgot Password?</Link>
+
+        <p className="text-center text-sm text-slate-400 mt-4">
+          <Link href="/forgot-password" className="text-purple-400 hover:text-purple-300 font-medium transition">Forgot Password?</Link>
         </p>
-        <p className="text-center text-sm text-gray-600 mt-2">
-          No account?{" "}<Link href="/register" className="text-blue-500 hover:underline">Register</Link>
+        <p className="text-center text-sm text-slate-400 mt-2">
+          No account?{" "}
+          <Link href="/register" className="text-pink-400 hover:text-pink-300 font-medium transition">Create one ✨</Link>
         </p>
       </div>
     </div>

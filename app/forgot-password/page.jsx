@@ -25,7 +25,7 @@ const getStrength = (p) => {
   return s;
 };
 
-const strengthLabel = ["", "Weak", "Fair", "Good", "Strong"];
+const strengthLabel = ["", "Weak 😬", "Fair 🤔", "Good 👍", "Strong 💪"];
 const strengthColor = ["", "bg-red-500", "bg-yellow-400", "bg-blue-500", "bg-green-500"];
 
 export default function ForgotPassword() {
@@ -35,9 +35,6 @@ export default function ForgotPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-
-  const inputClass = "w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500";
-  const btnClass = "w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition";
   const strength = getStrength(form.newPassword);
 
   const sendOtp = async (e) => {
@@ -55,7 +52,6 @@ export default function ForgotPassword() {
     if (form.otp.length !== 6) return toast.error("OTP must be 6 digits");
     if (form.newPassword.length < 8) return toast.error("Password must be at least 8 characters");
     if (strength < 2) return toast.error("Password is too weak");
-
     setLoading(true);
     try {
       await resetPassword(email, form.otp, form.newPassword);
@@ -69,59 +65,73 @@ export default function ForgotPassword() {
   };
 
   if (step === 1) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Forgot Password</h2>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      <div className="absolute top-20 left-20 w-80 h-80 rounded-full opacity-20 animate-float" style={{ background: "radial-gradient(circle, #06b6d4, transparent)" }} />
+      <div className="absolute bottom-20 right-20 w-80 h-80 rounded-full opacity-20 animate-float" style={{ background: "radial-gradient(circle, #7c3aed, transparent)", animationDelay: "2s" }} />
+
+      <div className="glass p-8 rounded-3xl w-full max-w-md relative z-10">
+        <div className="text-center mb-8">
+          <div className="text-5xl mb-3">🔑</div>
+          <h2 className="text-3xl font-bold text-gradient mb-1">Forgot Password?</h2>
+          <p className="text-slate-400 text-sm">No worries, we got you covered!</p>
+        </div>
         <form onSubmit={sendOtp} className="space-y-4">
-          <input placeholder="Enter your email" type="email" value={email}
-            onChange={(e) => setEmail(e.target.value)} required className={inputClass} />
-          <button type="submit" disabled={loading} className={btnClass}>
-            {loading ? "Sending..." : "Send OTP"}
+          <input placeholder="📧  Enter your email" type="email" value={email}
+            onChange={(e) => setEmail(e.target.value)} required className="input-dark" />
+          <button type="submit" disabled={loading} className="btn-primary">
+            {loading ? "Sending..." : "Send OTP 📨"}
           </button>
         </form>
-        <p className="text-center text-sm text-gray-600 mt-4">
-          <Link href="/login" className="text-blue-500 hover:underline">Back to Login</Link>
+        <p className="text-center text-sm text-slate-400 mt-4">
+          <Link href="/login" className="text-purple-400 hover:text-purple-300 font-medium transition">← Back to Login</Link>
         </p>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">Reset Password</h2>
-        <p className="text-center text-sm text-gray-500 mb-6">OTP sent to <strong>{email}</strong></p>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      <div className="absolute top-20 right-20 w-80 h-80 rounded-full opacity-20 animate-float" style={{ background: "radial-gradient(circle, #db2777, transparent)" }} />
+      <div className="absolute bottom-20 left-20 w-80 h-80 rounded-full opacity-20 animate-float" style={{ background: "radial-gradient(circle, #2563eb, transparent)", animationDelay: "1.5s" }} />
+
+      <div className="glass p-8 rounded-3xl w-full max-w-md relative z-10">
+        <div className="text-center mb-6">
+          <div className="text-5xl mb-3">🔐</div>
+          <h2 className="text-3xl font-bold text-gradient mb-1">Reset Password</h2>
+          <p className="text-slate-400 text-sm">OTP sent to <span className="text-purple-400 font-semibold">{email}</span></p>
+        </div>
         <form onSubmit={resetPass} className="space-y-4">
-          <input placeholder="Enter 6-digit OTP" maxLength={6} inputMode="numeric"
+          <input placeholder="🔢  Enter 6-digit OTP" maxLength={6} inputMode="numeric"
             onChange={(e) => setForm({ ...form, otp: e.target.value.replace(/\D/g, "") })}
-            value={form.otp} required className={inputClass} />
+            value={form.otp} required
+            className="input-dark text-center tracking-[0.4em] text-lg font-bold" />
 
           <div className="relative">
-            <input placeholder="New Password (min 8)"
+            <input placeholder="🔒  New Password (min 8)"
               type={showPassword ? "text" : "password"}
               onChange={(e) => setForm({ ...form, newPassword: e.target.value })} required
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="input-dark pr-12" />
             <button type="button" onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-purple-400 transition">
               <EyeIcon open={showPassword} />
             </button>
           </div>
 
           {form.newPassword.length > 0 && (
-            <div className="space-y-1">
+            <div className="space-y-1 px-1">
               <div className="flex gap-1">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i <= strength ? strengthColor[strength] : "bg-gray-200"}`} />
+                  <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${i <= strength ? strengthColor[strength] : "bg-white/10"}`} />
                 ))}
               </div>
-              <p className={`text-xs font-medium ${["", "text-red-500", "text-yellow-500", "text-blue-500", "text-green-500"][strength]}`}>
+              <p className={`text-xs font-medium ${["", "text-red-400", "text-yellow-400", "text-blue-400", "text-green-400"][strength]}`}>
                 {strengthLabel[strength]}
               </p>
             </div>
           )}
 
-          <button type="submit" disabled={loading} className={btnClass}>
-            {loading ? "Resetting..." : "Reset Password"}
+          <button type="submit" disabled={loading} className="btn-primary">
+            {loading ? "Resetting..." : "Reset Password 🚀"}
           </button>
         </form>
       </div>

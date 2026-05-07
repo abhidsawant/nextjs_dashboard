@@ -25,7 +25,7 @@ const getStrength = (p) => {
   return s;
 };
 
-const strengthLabel = ["", "Weak", "Fair", "Good", "Strong"];
+const strengthLabel = ["", "Weak 😬", "Fair 🤔", "Good 👍", "Strong 💪"];
 const strengthColor = ["", "bg-red-500", "bg-yellow-400", "bg-blue-500", "bg-green-500"];
 
 export default function Register() {
@@ -44,7 +44,6 @@ export default function Register() {
     if (form.password.length < 8) return toast.error("Password must be at least 8 characters");
     if (strength < 2) return toast.error("Password is too weak");
     if (form.password !== form.confirm) return toast.error("Passwords do not match");
-
     setLoading(true);
     try {
       await registerUser({ name: form.name, email: form.email, password: form.password });
@@ -58,65 +57,68 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Create Account</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input name="name" placeholder="Full Name" onChange={handle} required
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          <input name="email" placeholder="Email" type="email" onChange={handle} required
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden py-8">
+      <div className="absolute top-10 right-20 w-80 h-80 rounded-full opacity-20 animate-float" style={{ background: "radial-gradient(circle, #7c3aed, transparent)" }} />
+      <div className="absolute bottom-10 left-20 w-80 h-80 rounded-full opacity-20 animate-float" style={{ background: "radial-gradient(circle, #db2777, transparent)", animationDelay: "1.5s" }} />
+      <div className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full opacity-10 animate-float" style={{ background: "radial-gradient(circle, #06b6d4, transparent)", animationDelay: "3s" }} />
 
-          {/* Password */}
+      <div className="glass p-8 rounded-3xl w-full max-w-md relative z-10">
+        <div className="text-center mb-8">
+          <div className="text-5xl mb-3">🚀</div>
+          <h2 className="text-3xl font-bold text-gradient mb-1">Join the Club!</h2>
+          <p className="text-slate-400 text-sm">Create your account in seconds</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input name="name" placeholder="👤  Full Name" onChange={handle} required className="input-dark" />
+          <input name="email" placeholder="📧  Email" type="email" onChange={handle} required className="input-dark" />
+
           <div className="relative">
-            <input name="password" placeholder="Password (min 8)"
+            <input name="password" placeholder="🔒  Password (min 8)"
               type={showPassword ? "text" : "password"}
-              onChange={handle} required
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              onChange={handle} required className="input-dark pr-12" />
             <button type="button" onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-purple-400 transition">
               <EyeIcon open={showPassword} />
             </button>
           </div>
 
-          {/* Strength meter */}
           {form.password.length > 0 && (
-            <div className="space-y-1">
+            <div className="space-y-1 px-1">
               <div className="flex gap-1">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i <= strength ? strengthColor[strength] : "bg-gray-200"}`} />
+                  <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${i <= strength ? strengthColor[strength] : "bg-white/10"}`} />
                 ))}
               </div>
-              <p className={`text-xs font-medium ${["", "text-red-500", "text-yellow-500", "text-blue-500", "text-green-500"][strength]}`}>
+              <p className={`text-xs font-medium ${["", "text-red-400", "text-yellow-400", "text-blue-400", "text-green-400"][strength]}`}>
                 {strengthLabel[strength]}
               </p>
             </div>
           )}
 
-          {/* Confirm Password */}
           <div className="relative">
-            <input name="confirm" placeholder="Confirm Password"
+            <input name="confirm" placeholder="🔐  Confirm Password"
               type={showConfirm ? "text" : "password"}
               onChange={handle} required
-              className={`w-full border rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                form.confirm && form.password !== form.confirm ? "border-red-400" : "border-gray-300"
-              }`} />
+              className="input-dark pr-12"
+              style={form.confirm && form.password !== form.confirm ? { borderColor: "rgba(239, 68, 68, 0.5)", boxShadow: "0 0 0 3px rgba(239, 68, 68, 0.1)" } : {}} />
             <button type="button" onClick={() => setShowConfirm(!showConfirm)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-purple-400 transition">
               <EyeIcon open={showConfirm} />
             </button>
           </div>
           {form.confirm && form.password !== form.confirm && (
-            <p className="text-red-500 text-xs -mt-2">Passwords do not match</p>
+            <p className="text-red-400 text-xs px-1">Passwords do not match ❌</p>
           )}
 
-          <button type="submit" disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition">
-            {loading ? "Registering..." : "Register"}
+          <button type="submit" disabled={loading} className="btn-primary">
+            {loading ? "Creating account..." : "Create Account 🎉"}
           </button>
         </form>
-        <p className="text-center text-sm text-gray-600 mt-4">
-          Already have an account?{" "}<Link href="/login" className="text-blue-500 hover:underline">Login</Link>
+
+        <p className="text-center text-sm text-slate-400 mt-4">
+          Already have an account?{" "}
+          <Link href="/login" className="text-purple-400 hover:text-purple-300 font-medium transition">Sign in ✨</Link>
         </p>
       </div>
     </div>

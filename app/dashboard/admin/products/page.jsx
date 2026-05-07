@@ -11,7 +11,7 @@ function SkeletonRow() {
     <tr>
       {[...Array(7)].map((_, i) => (
         <td key={i} className="px-4 py-3">
-          <div className="h-4 bg-gray-200 rounded animate-pulse w-24" />
+          <div className="h-4 rounded-lg animate-pulse w-24" style={{ background: "rgba(255,255,255,0.07)" }} />
         </td>
       ))}
     </tr>
@@ -48,34 +48,17 @@ export default function AdminProducts() {
 
   const startEdit = (p) => {
     setEditId(p._id);
-    setEditForm({
-      name: p.name,
-      description: p.description || "",
-      price: p.price,
-      stock: p.stock,
-      category: p.category || "",
-      currency: p.currency || "INR",
-      image: p.image || "",
-      isActive: p.isActive,
-    });
+    setEditForm({ name: p.name, description: p.description || "", price: p.price, stock: p.stock, category: p.category || "", currency: p.currency || "INR", image: p.image || "", isActive: p.isActive });
   };
 
-  const cancelEdit = () => {
-    setEditId(null);
-    setEditForm({});
-  };
+  const cancelEdit = () => { setEditId(null); setEditForm({}); };
 
   const handleUpdate = async (id) => {
     if (!editForm.name.trim()) return toast.error("Product name is required");
     if (isNaN(editForm.price) || Number(editForm.price) < 0) return toast.error("Enter a valid price");
     if (isNaN(editForm.stock) || Number(editForm.stock) < 0) return toast.error("Enter a valid stock");
-
     try {
-      const { data } = await updateProduct(id, {
-        ...editForm,
-        price: Number(editForm.price),
-        stock: Number(editForm.stock),
-      });
+      const { data } = await updateProduct(id, { ...editForm, price: Number(editForm.price), stock: Number(editForm.stock) });
       setProducts(products.map((p) => p._id === id ? data.product : p));
       cancelEdit();
       toast.success("Product updated!");
@@ -89,14 +72,9 @@ export default function AdminProducts() {
     if (!form.name.trim()) return toast.error("Product name is required");
     if (isNaN(form.price) || Number(form.price) < 0) return toast.error("Enter a valid price");
     if (isNaN(form.stock) || Number(form.stock) < 0) return toast.error("Enter a valid stock");
-
     setSubmitting(true);
     try {
-      const { data } = await createProduct({
-        ...form,
-        price: Number(form.price),
-        stock: Number(form.stock),
-      });
+      const { data } = await createProduct({ ...form, price: Number(form.price), stock: Number(form.stock) });
       setProducts([data.product, ...products]);
       setForm(empty);
       toast.success("Product added!");
@@ -117,73 +95,75 @@ export default function AdminProducts() {
     }
   };
 
-  const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
-  const editInputClass = "w-full border border-blue-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500";
+  const editInputClass = "w-full rounded-lg px-2 py-1 text-sm text-white outline-none transition"
+    + " bg-white/5 border border-white/10 focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30";
 
   return (
     <div className="space-y-6">
       {/* Add Product Form */}
-      <div className="bg-white rounded-2xl shadow p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Add Product</h2>
+      <div className="glass-card rounded-3xl p-6">
+        <div className="flex items-center gap-2 mb-6">
+          <span className="text-2xl">➕</span>
+          <h2 className="text-xl font-bold text-gradient">Add New Product</h2>
+        </div>
         <form onSubmit={handleAdd} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <input name="name" placeholder="Product Name" value={form.name} onChange={handle} required className={inputClass} />
-          <input name="category" placeholder="Category (optional)" value={form.category} onChange={handle} className={inputClass} />
-          <input name="price" placeholder="Price" type="number" min="0" step="0.01" value={form.price} onChange={handle} required className={inputClass} />
-          <select name="currency" value={form.currency} onChange={handle} className={inputClass}>
-            <option value="INR">INR</option>
-            <option value="USD">USD</option>
-            <option value="EUR">EUR</option>
-            <option value="GBP">GBP</option>
+          <input name="name" placeholder="📦 Product Name *" value={form.name} onChange={handle} required className="input-dark" />
+          <input name="category" placeholder="🏷️ Category" value={form.category} onChange={handle} className="input-dark" />
+          <input name="price" placeholder="💰 Price *" type="number" min="0" step="0.01" value={form.price} onChange={handle} required className="input-dark" />
+          <select name="currency" value={form.currency} onChange={handle} className="input-dark">
+            <option value="INR" style={{ background: "#1a1a2e" }}>INR (₹)</option>
+            <option value="USD" style={{ background: "#1a1a2e" }}>USD ($)</option>
+            <option value="EUR" style={{ background: "#1a1a2e" }}>EUR (€)</option>
+            <option value="GBP" style={{ background: "#1a1a2e" }}>GBP (£)</option>
           </select>
-          <input name="stock" placeholder="Stock" type="number" min="0" value={form.stock} onChange={handle} required className={inputClass} />
-          <input name="image" placeholder="Image URL (optional)" value={form.image} onChange={handle} className={inputClass} />
-          <input name="description" placeholder="Description (optional)" value={form.description} onChange={handle} className={`${inputClass} sm:col-span-2`} />
-          <div className="flex items-center gap-2">
-            <input type="checkbox" name="isActive" id="isActive" checked={form.isActive} onChange={handle} className="w-4 h-4 accent-blue-600" />
-            <label htmlFor="isActive" className="text-sm text-gray-700">Active</label>
+          <input name="stock" placeholder="📊 Stock *" type="number" min="0" value={form.stock} onChange={handle} required className="input-dark" />
+          <input name="image" placeholder="🖼️ Image URL" value={form.image} onChange={handle} className="input-dark" />
+          <input name="description" placeholder="📝 Description" value={form.description} onChange={handle} className="input-dark sm:col-span-2" />
+          <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <input type="checkbox" name="isActive" id="isActive" checked={form.isActive} onChange={handle} className="w-4 h-4 accent-green-500" />
+            <label htmlFor="isActive" className="text-sm text-slate-300 font-medium cursor-pointer"> Active Product</label>
           </div>
           <div className="sm:col-span-2">
-            <button type="submit" disabled={submitting || !isFormValid}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm">
-              {submitting ? "Adding..." : "Add Product"}
+            <button type="submit" disabled={submitting || !isFormValid} className="btn-primary" style={{ width: "auto", padding: "0.625rem 1.5rem" }}>
+              {submitting ? "Adding..." : "Add Product 🚀"}
             </button>
           </div>
         </form>
       </div>
 
       {/* Products Table */}
-      <div className="bg-white rounded-2xl shadow p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">
-          All Products {!loading && `(${products.length})`}
-        </h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
-              <tr>{["Image", "Name", "Category", "Price", "Stock", "Status", "Actions"].map((h) => (
-                <th key={h} className="px-4 py-3">{h}</th>
-              ))}</tr>
+      <div className="glass-card rounded-3xl p-6">
+        <div className="flex items-center gap-2 mb-6">
+          <span className="text-2xl">📦</span>
+          <h2 className="text-xl font-bold text-gradient">All Products</h2>
+          {!loading && <span className="text-sm text-slate-500">({products.length})</span>}
+        </div>
+        <div className="overflow-x-auto rounded-2xl scrollbar-dark" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ background: "rgba(124,58,237,0.08)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                {["Image", "Name", "Category", "Price", "Stock", "Status", "Actions"].map((h) => (
+                  <th key={h} className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wide text-slate-400">{h}</th>
+                ))}
+              </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {loading
                 ? [...Array(5)].map((_, i) => <SkeletonRow key={i} />)
                 : products.length === 0
-                  ? <tr><td colSpan={7} className="px-4 py-6 text-center text-gray-400">No products yet</td></tr>
+                  ? <tr><td colSpan={7} className="px-4 py-12 text-center text-slate-500">
+                      <div className="text-4xl mb-2">📭</div>
+                      <p>No products yet</p>
+                    </td></tr>
                   : products.map((p) => editId === p._id ? (
-                    // Edit Row
-                    <tr key={p._id} className="bg-blue-50">
-                      <td className="px-4 py-3">
-                        <input name="image" value={editForm.image} onChange={handleEditChange} placeholder="Image URL" className={editInputClass} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <input name="name" value={editForm.name} onChange={handleEditChange} required className={editInputClass} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <input name="category" value={editForm.category} onChange={handleEditChange} placeholder="Category" className={editInputClass} />
-                      </td>
+                    <tr key={p._id} style={{ background: "rgba(124,58,237,0.06)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                      <td className="px-4 py-3"><input name="image" value={editForm.image} onChange={handleEditChange} placeholder="URL" className={editInputClass} /></td>
+                      <td className="px-4 py-3"><input name="name" value={editForm.name} onChange={handleEditChange} required className={editInputClass} /></td>
+                      <td className="px-4 py-3"><input name="category" value={editForm.category} onChange={handleEditChange} className={editInputClass} /></td>
                       <td className="px-4 py-3">
                         <div className="flex gap-1">
                           <input name="price" type="number" min="0" step="0.01" value={editForm.price} onChange={handleEditChange} className={`${editInputClass} w-20`} />
-                          <select name="currency" value={editForm.currency} onChange={handleEditChange} className={editInputClass}>
+                          <select name="currency" value={editForm.currency} onChange={handleEditChange} className={editInputClass} style={{ background: "#1a1a2e" }}>
                             <option value="INR">INR</option>
                             <option value="USD">USD</option>
                             <option value="EUR">EUR</option>
@@ -191,59 +171,73 @@ export default function AdminProducts() {
                           </select>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <input name="stock" type="number" min="0" value={editForm.stock} onChange={handleEditChange} className={`${editInputClass} w-20`} />
-                      </td>
+                      <td className="px-4 py-3"><input name="stock" type="number" min="0" value={editForm.stock} onChange={handleEditChange} className={`${editInputClass} w-20`} /></td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
-                          <input type="checkbox" name="isActive" checked={editForm.isActive} onChange={handleEditChange} className="w-4 h-4 accent-blue-600" />
-                          <span className="text-xs text-gray-600">Active</span>
+                          <input type="checkbox" name="isActive" checked={editForm.isActive} onChange={handleEditChange} className="w-4 h-4 accent-green-500" />
+                          <span className="text-xs text-slate-400">Active</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex gap-2">
                           <button onClick={() => handleUpdate(p._id)}
-                            className="bg-green-600 text-white px-3 py-1 rounded-lg text-xs hover:bg-green-700 transition">
-                            Save
+                            className="px-3 py-1 rounded-lg text-xs font-semibold transition active:scale-95"
+                            style={{ background: "rgba(16,185,129,0.2)", color: "#34d399", border: "1px solid rgba(16,185,129,0.3)" }}>
+                            ✓ Save
                           </button>
                           <button onClick={cancelEdit}
-                            className="bg-gray-400 text-white px-3 py-1 rounded-lg text-xs hover:bg-gray-500 transition">
-                            Cancel
+                            className="px-3 py-1 rounded-lg text-xs font-semibold transition active:scale-95"
+                            style={{ background: "rgba(100,116,139,0.2)", color: "#94a3b8", border: "1px solid rgba(100,116,139,0.3)" }}>
+                            ✕ Cancel
                           </button>
                         </div>
                       </td>
                     </tr>
                   ) : (
-                    // View Row
-                    <tr key={p._id} className="hover:bg-gray-50">
+                    <tr key={p._id} className="transition-colors" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                      onMouseEnter={e => e.currentTarget.style.background = "rgba(124,58,237,0.05)"}
+                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                       <td className="px-4 py-3">
                         {p.image
-                          ? <img src={p.image} alt={p.name} className="w-10 h-10 rounded object-cover" />
-                          : <div className="w-10 h-10 rounded bg-gray-100 flex items-center justify-center text-gray-400 text-xs">N/A</div>
+                          ? <img src={p.image} alt={p.name} className="w-12 h-12 rounded-xl object-cover" style={{ border: "1px solid rgba(255,255,255,0.1)" }} />
+                          : <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl" style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.2), rgba(219,39,119,0.2))", border: "1px solid rgba(255,255,255,0.08)" }}>📦</div>
                         }
                       </td>
-                      <td className="px-4 py-3 font-medium text-gray-800">{p.name}</td>
-                      <td className="px-4 py-3 text-gray-600">{p.category || "—"}</td>
-                      <td className="px-4 py-3 text-gray-800">{p.currency} {p.price}</td>
+                      <td className="px-4 py-3 font-semibold text-white">{p.name}</td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${p.stock > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                          {p.stock > 0 ? `${p.stock} in stock` : "Out of stock"}
+                        {p.category
+                          ? <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "rgba(124,58,237,0.2)", color: "#a78bfa", border: "1px solid rgba(124,58,237,0.3)" }}>{p.category}</span>
+                          : <span className="text-slate-600 text-xs">—</span>
+                        }
+                      </td>
+                      <td className="px-4 py-3 font-semibold text-gradient">{p.currency} {p.price}</td>
+                      <td className="px-4 py-3">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
+                          style={p.stock > 0
+                            ? { background: "rgba(16,185,129,0.15)", color: "#34d399" }
+                            : { background: "rgba(239,68,68,0.15)", color: "#f87171" }}>
+                          {p.stock > 0 ? `${p.stock} left` : "Out of stock"}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${p.isActive ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}>
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
+                          style={p.isActive
+                            ? { background: "rgba(37,99,235,0.15)", color: "#60a5fa" }
+                            : { background: "rgba(100,116,139,0.15)", color: "#94a3b8" }}>
                           {p.isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex gap-2">
                           <button onClick={() => startEdit(p)}
-                            className="bg-yellow-500 text-white px-3 py-1 rounded-lg text-xs hover:bg-yellow-600 transition">
-                            Edit
+                            className="px-3 py-1 rounded-lg text-xs font-semibold transition active:scale-95"
+                            style={{ background: "rgba(234,179,8,0.15)", color: "#fbbf24", border: "1px solid rgba(234,179,8,0.25)" }}>
+                            ✏️ Edit
                           </button>
                           <button onClick={() => handleDelete(p._id)}
-                            className="bg-red-500 text-white px-3 py-1 rounded-lg text-xs hover:bg-red-600 transition">
-                            Delete
+                            className="px-3 py-1 rounded-lg text-xs font-semibold transition active:scale-95"
+                            style={{ background: "rgba(239,68,68,0.15)", color: "#f87171", border: "1px solid rgba(239,68,68,0.25)" }}>
+                            🗑️ Delete
                           </button>
                         </div>
                       </td>
