@@ -24,8 +24,12 @@ export default function DashboardLayout({ children }) {
       <header className="bg-gray-900 text-white px-6 py-4 flex items-center justify-between">
         <nav className="flex gap-6">
           <Link href="/dashboard" className="hover:text-blue-400 transition">Dashboard</Link>
+          <Link href="/dashboard/products" className="hover:text-blue-400 transition">Products</Link>
           {user?.role === "admin" && (
-            <Link href="/dashboard/admin/users" className="hover:text-blue-400 transition">Manage Users</Link>
+            <>
+              <Link href="/dashboard/admin/users" className="hover:text-blue-400 transition">Manage Users</Link>
+              <Link href="/dashboard/admin/products" className="hover:text-blue-400 transition">Manage Products</Link>
+            </>
           )}
         </nav>
         <button onClick={handleLogout}

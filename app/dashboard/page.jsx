@@ -1,16 +1,9 @@
 "use client";
 import { useAuth } from "../../context/AuthContext";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    await logout();
-    router.push("/login");
-  };
+  const { user } = useAuth();
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow p-8">
@@ -26,9 +19,10 @@ export default function Dashboard() {
       {user?.role === "admin" && (
         <div className="mt-6 p-4 bg-purple-50 rounded-xl border border-purple-200">
           <h3 className="font-semibold text-purple-800 mb-2">Admin Panel</h3>
-          <Link href="/dashboard/admin/users" className="text-purple-600 hover:underline text-sm">
-            Manage Users →
-          </Link>
+          <div className="flex flex-col gap-1">
+            <Link href="/dashboard/admin/users" className="text-purple-600 hover:underline text-sm">Manage Users →</Link>
+            <Link href="/dashboard/admin/products" className="text-purple-600 hover:underline text-sm">Manage Products →</Link>
+          </div>
         </div>
       )}
     </div>
