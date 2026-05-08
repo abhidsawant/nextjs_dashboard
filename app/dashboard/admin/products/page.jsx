@@ -24,7 +24,7 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
-  const isFormValid = form.name.trim() !== "" && form.price !== "" && form.stock !== "";
+  const isFormValid = form.name.trim() !== "" && form.price !== "";
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({});
 
