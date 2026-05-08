@@ -65,7 +65,7 @@ export default function Register() {
       <div className="glass p-8 rounded-3xl w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">🚀</div>
-          <h2 className="text-3xl font-bold text-gradient mb-1">Join the Club!</h2>
+          <h2 className="text-3xl font-bold text-gradient mb-1">Join With Us!</h2>
           <p className="text-slate-400 text-sm">Create your account in seconds</p>
         </div>
 
