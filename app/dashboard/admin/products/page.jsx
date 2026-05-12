@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { useRequireAdmin } from "../../../../context/AuthContext";
 import { getProducts, createProduct, updateProduct, deleteProduct } from "../../../../lib/services";
@@ -27,14 +27,40 @@ export default function AdminProducts() {
   const isFormValid = form.name.trim() !== "" && form.price !== "";
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
+  const debounceRef = useRef(null);
+  const LIMIT = 12;
+
+  const fetchProducts = (p = page, q = search) => {
+    setLoading(true);
+    const params = { page: p, limit: LIMIT };
+    if (q) params.q = q;
+    getProducts(params)
+      .then(({ data }) => {
+        setProducts(data.items);
+        setTotal(data.total);
+        setPages(data.pages);
+      })
+      .catch(() => toast.error("Failed to load products"))
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
     if (authLoading) return;
-    getProducts()
-      .then(({ data }) => setProducts(data.items))
-      .catch(() => toast.error("Failed to load products"))
-      .finally(() => setLoading(false));
-  }, [authLoading]);
+    fetchProducts(page, search);
+  }, [authLoading, page, search]);
+
+  const handleSearch = (e) => {
+    const val = e.target.value;
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearch(val.trim());
+      setPage(1);
+    }, 500);
+  };
 
   const handle = (e) => {
     const val = e.target.type === "checkbox" ? e.target.checked : e.target.value;
@@ -59,9 +85,9 @@ export default function AdminProducts() {
     if (isNaN(editForm.stock) || Number(editForm.stock) < 0) return toast.error("Enter a valid stock");
     try {
       const { data } = await updateProduct(id, { ...editForm, price: Number(editForm.price), stock: Number(editForm.stock) });
-      setProducts(products.map((p) => p._id === id ? data.product : p));
       cancelEdit();
       toast.success("Product updated!");
+      fetchProducts(page, search);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to update product");
     }
@@ -78,6 +104,7 @@ export default function AdminProducts() {
       setProducts([data.product, ...products]);
       setForm(empty);
       toast.success("Product added!");
+      if (page !== 1) setPage(1); else fetchProducts(1, search);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to add product");
     } finally {
@@ -88,8 +115,8 @@ export default function AdminProducts() {
   const handleDelete = async (id) => {
     try {
       await deleteProduct(id);
-      setProducts(products.filter((p) => p._id !== id));
       toast.success("Product deleted");
+      fetchProducts(page, search);
     } catch {
       toast.error("Failed to delete product");
     }
@@ -136,7 +163,13 @@ export default function AdminProducts() {
         <div className="flex items-center gap-2 mb-6">
           <span className="text-2xl">📦</span>
           <h2 className="text-xl font-bold text-gradient">All Products</h2>
-          {!loading && <span className="text-sm text-slate-500">({products.length})</span>}
+          {!loading && <span className="text-sm text-slate-500">({total} total)</span>}
+          <input
+            onChange={handleSearch}
+            placeholder="🔍  Search products..."
+            className="input-dark ml-auto"
+            style={{ width: "220px" }}
+          />
         </div>
         <div className="overflow-x-auto rounded-2xl scrollbar-dark" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
           <table className="w-full text-sm">
@@ -247,6 +280,38 @@ export default function AdminProducts() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {pages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
+              className="px-4 py-2 rounded-xl text-sm font-medium transition-all active:scale-95 disabled:opacity-30"
+              style={{ background: "rgba(255,255,255,0.06)", color: "#e2e8f0", border: "1px solid rgba(255,255,255,0.1)" }}>
+              ← Prev
+            </button>
+            {[...Array(pages)].map((_, i) => {
+              const p = i + 1;
+              if (pages > 7 && Math.abs(p - page) > 2 && p !== 1 && p !== pages) {
+                if (p === 2 || p === pages - 1) return <span key={p} className="text-slate-600">…</span>;
+                return null;
+              }
+              return (
+                <button key={p} onClick={() => setPage(p)}
+                  className="w-9 h-9 rounded-xl text-sm font-semibold transition-all active:scale-95"
+                  style={p === page
+                    ? { background: "linear-gradient(135deg, #7c3aed, #db2777)", color: "white" }
+                    : { background: "rgba(255,255,255,0.06)", color: "#94a3b8", border: "1px solid rgba(255,255,255,0.1)" }}>
+                  {p}
+                </button>
+              );
+            })}
+            <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page === pages}
+              className="px-4 py-2 rounded-xl text-sm font-medium transition-all active:scale-95 disabled:opacity-30"
+              style={{ background: "rgba(255,255,255,0.06)", color: "#e2e8f0", border: "1px solid rgba(255,255,255,0.1)" }}>
+              Next →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

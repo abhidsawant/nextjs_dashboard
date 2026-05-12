@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { getProducts, getFavorites, toggleFavorite } from "../../../lib/services";
+import { getProducts, getFavorites, toggleFavorite, getFavoriteProducts } from "../../../lib/services";
 
 function SkeletonCard() {
   return (
@@ -38,7 +39,7 @@ const SORT_OPTIONS = [
   { label: "Name A-Z", value: "name" },
 ];
 
-export default function ProductsPage() {
+function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [favoriteIds, setFavoriteIds] = useState(new Set());
   const [togglingId, setTogglingId] = useState(null);
@@ -57,6 +58,17 @@ export default function ProductsPage() {
   const [maxPrice, setMaxPrice] = useState("");
   const [active, setActive] = useState("");
   const [sort, setSort] = useState("-createdAt");
+  const [showFavOnly, setShowFavOnly] = useState(false);
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (searchParams.get("favorites") === "1") {
+      setShowFavOnly(true);
+      router.replace("/dashboard/products");
+    }
+  }, []);
 
   const fetchProducts = useCallback(() => {
     if (isFirstLoad.current) {
@@ -64,14 +76,20 @@ export default function ProductsPage() {
     } else {
       setRefreshing(true);
     }
-    const params = { page, sort, limit: 12 };
-    if (search) params.q = search;
-    if (category) params.category = category;
-    if (minPrice) params.minPrice = minPrice;
-    if (maxPrice) params.maxPrice = maxPrice;
-    if (active !== "") params.active = active;
 
-    getProducts(params)
+    const request = showFavOnly
+      ? getFavoriteProducts()
+      : (() => {
+          const params = { page, sort, limit: 12 };
+          if (search) params.q = search;
+          if (category) params.category = category;
+          if (minPrice) params.minPrice = minPrice;
+          if (maxPrice) params.maxPrice = maxPrice;
+          if (active !== "") params.active = active;
+          return getProducts(params);
+        })();
+
+    request
       .then(({ data }) => {
         setProducts(data.items);
         setTotal(data.total);
@@ -83,7 +101,7 @@ export default function ProductsPage() {
         setRefreshing(false);
         isFirstLoad.current = false;
       });
-  }, [page, search, category, minPrice, maxPrice, active, sort]);
+  }, [page, search, category, minPrice, maxPrice, active, sort, showFavOnly]);
 
   useEffect(() => {
     getFavorites()
@@ -140,10 +158,13 @@ export default function ProductsPage() {
           </p>
         </div>
         {favoriteIds.size > 0 && (
-          <span className="text-sm font-medium px-3 py-1 rounded-full"
-            style={{ background: "rgba(219,39,119,0.15)", color: "#f472b6", border: "1px solid rgba(219,39,119,0.25)" }}>
-            ❤️ {favoriteIds.size} favorited
-          </span>
+          <button onClick={() => setShowFavOnly((v) => !v)}
+            className="text-sm font-medium px-3 py-1 rounded-full transition-all active:scale-95"
+            style={showFavOnly
+              ? { background: "rgba(219,39,119,0.4)", color: "#f472b6", border: "1px solid rgba(219,39,119,0.6)" }
+              : { background: "rgba(219,39,119,0.15)", color: "#f472b6", border: "1px solid rgba(219,39,119,0.25)" }}>
+            ❤️ {favoriteIds.size} favorited{showFavOnly ? " ✕" : ""}
+          </button>
         )}
       </div>
 
@@ -309,4 +330,8 @@ export default function ProductsPage() {
       )}
     </div>
   );
+}
+
+export default function ProductsPageWrapper() {
+  return <Suspense><ProductsPage /></Suspense>;
 }

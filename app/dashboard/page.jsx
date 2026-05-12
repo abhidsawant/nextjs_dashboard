@@ -17,7 +17,7 @@ export default function Dashboard() {
   const cards = [
     { label: "Role", value: user?.role, emoji: user?.role === "admin" ? "👑" : "👤", from: "#7c3aed", to: "#db2777" },
     { label: "Status", value: "Active", emoji: "✅", from: "#059669", to: "#0891b2" },
-    { label: "Favorites", value: favCount === null ? "..." : favCount, emoji: "❤️", from: "#db2777", to: "#f97316" },
+    { label: "Favorites", value: favCount === null ? "..." : favCount, emoji: "❤️", from: "#db2777", to: "#f97316", href: "/dashboard/products?favorites=1" },
   ];
 
   return (
@@ -35,16 +35,23 @@ export default function Dashboard() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {cards.map((c) => (
-          <div key={c.label} className="glass-card rounded-2xl p-5 hover-lift">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-3"
-              style={{ background: `linear-gradient(135deg, ${c.from}, ${c.to})` }}>
-              {c.emoji}
-            </div>
-            <p className="text-slate-500 text-xs font-medium uppercase tracking-wide">{c.label}</p>
-            <p className="text-white font-bold text-lg capitalize mt-0.5">{c.value}</p>
-          </div>
-        ))}
+        {cards.map((c) => {
+          const inner = (
+            <>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-3"
+                style={{ background: `linear-gradient(135deg, ${c.from}, ${c.to})` }}>
+                {c.emoji}
+              </div>
+              <p className="text-slate-500 text-xs font-medium uppercase tracking-wide">{c.label}</p>
+              <p className="text-white font-bold text-lg capitalize mt-0.5">{c.value}</p>
+            </>
+          );
+          return c.href ? (
+            <Link key={c.label} href={c.href} className="glass-card rounded-2xl p-5 hover-lift block">{inner}</Link>
+          ) : (
+            <div key={c.label} className="glass-card rounded-2xl p-5 hover-lift">{inner}</div>
+          );
+        })}
       </div>
 
       {/* Admin Panel */}
