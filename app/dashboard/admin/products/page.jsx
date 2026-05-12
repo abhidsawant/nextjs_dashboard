@@ -22,6 +22,8 @@ export default function AdminProducts() {
   const { loading: authLoading } = useRequireAdmin();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const isFirstLoad = useRef(true);
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
   const isFormValid = form.name.trim() !== "" && form.price !== "";
@@ -35,7 +37,11 @@ export default function AdminProducts() {
   const LIMIT = 12;
 
   const fetchProducts = (p = page, q = search) => {
-    setLoading(true);
+    if (isFirstLoad.current) {
+      setLoading(true);
+    } else {
+      setRefreshing(true);
+    }
     const params = { page: p, limit: LIMIT };
     if (q) params.q = q;
     getProducts(params)
@@ -45,7 +51,11 @@ export default function AdminProducts() {
         setPages(data.pages);
       })
       .catch(() => toast.error("Failed to load products"))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setRefreshing(false);
+        isFirstLoad.current = false;
+      });
   };
 
   useEffect(() => {
@@ -168,10 +178,20 @@ export default function AdminProducts() {
             onChange={handleSearch}
             placeholder="🔍  Search products..."
             className="input-dark ml-auto"
-            style={{ width: "220px" }}
+            style={{ width: "300px" }}
           />
         </div>
-        <div className="overflow-x-auto rounded-2xl scrollbar-dark" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="overflow-x-auto rounded-2xl scrollbar-dark relative" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+          {refreshing && (
+            <div className="absolute inset-0 z-10 rounded-2xl flex items-start justify-center pt-8 pointer-events-none"
+              style={{ background: "rgba(10,10,15,0.5)", backdropFilter: "blur(2px)" }}>
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full"
+                style={{ background: "rgba(124,58,237,0.2)", border: "1px solid rgba(124,58,237,0.3)" }}>
+                <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                <span className="text-purple-300 text-xs font-medium">Updating...</span>
+              </div>
+            </div>
+          )}
           <table className="w-full text-sm">
             <thead>
               <tr style={{ background: "rgba(124,58,237,0.08)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
