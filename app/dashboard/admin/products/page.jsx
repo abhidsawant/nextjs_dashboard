@@ -26,7 +26,7 @@ export default function AdminProducts() {
   const isFirstLoad = useRef(true);
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
-  const isFormValid = form.name.trim() !== "" && form.price !== "";
+  const isFormValid = form.name.trim() !== "" && form.price !== "" && form.stock !== "";
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [page, setPage] = useState(1);
@@ -114,7 +114,7 @@ export default function AdminProducts() {
       const { data } = await createProduct({ ...form, price: Number(form.price), stock: Number(form.stock) });
       setProducts([data.product, ...products]);
       setForm(empty);
-      toast.success("Product added!");
+      toast.success(data.message || "Product added!");
       if (page !== 1) setPage(1); else fetchProducts(1, search);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to add product");
@@ -125,8 +125,8 @@ export default function AdminProducts() {
 
   const handleDelete = async (id) => {
     try {
-      await deleteProduct(id);
-      toast.success("Product deleted");
+      const res = await deleteProduct(id);
+      toast.success(res.data.message || "Product deleted");
       setConfirmDeleteId(null);
       fetchProducts(page, search);
     } catch {

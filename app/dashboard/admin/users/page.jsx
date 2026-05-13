@@ -53,9 +53,9 @@ export default function AdminUsers() {
     const newRole = currentRole === "admin" ? "user" : "admin";
     setConfirmRole(null);
     try {
-      await updateUserRole(userId, newRole);
+      const res =await updateUserRole(userId, newRole);
       setUsers(users.map((u) => u._id === userId ? { ...u, role: newRole } : u));
-      toast.success(`Role updated to ${newRole}`);
+      toast.success(res.data.message || `Role updated to ${newRole}`);
     } catch {
       toast.error("Failed to update role");
     }
