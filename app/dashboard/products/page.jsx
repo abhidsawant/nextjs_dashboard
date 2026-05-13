@@ -20,6 +20,63 @@ function SkeletonCard() {
   );
 }
 
+function CustomSelect({ value, onChange, options, placeholder, width = "130px" }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const selected = options.find((o) => o.value === value);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative" style={{ width }}>
+      <button type="button" onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-sm transition-all"
+        style={{
+          background: open ? "rgba(167,139,250,0.1)" : "rgba(255,255,255,0.06)",
+          border: open ? "1px solid rgba(167,139,250,0.5)" : "1px solid rgba(255,255,255,0.1)",
+          color: selected ? "#e2e8f0" : "rgba(148,163,184,0.6)",
+          boxShadow: open ? "0 0 0 3px rgba(167,139,250,0.1)" : "none",
+        }}>
+        <span className="truncate">{selected ? selected.label : placeholder}</span>
+        <svg className="w-3.5 h-3.5 flex-shrink-0 text-slate-400 transition-transform" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute top-full mt-1.5 left-0 z-50 rounded-xl overflow-hidden py-1"
+          style={{ minWidth: "100%", background: "rgba(15,15,25,0.97)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 16px 40px rgba(0,0,0,0.6)", backdropFilter: "blur(20px)" }}>
+          {options.map((o) => {
+            const isActive = o.value === value;
+            return (
+              <button key={o.value} type="button"
+                onClick={() => { onChange(o.value); setOpen(false); }}
+                className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm transition-all text-left"
+                style={{
+                  background: isActive ? "rgba(124,58,237,0.2)" : "transparent",
+                  color: isActive ? "#a78bfa" : "#cbd5e1",
+                }}
+                onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
+                onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}>
+                <span>{o.label}</span>
+                {isActive && (
+                  <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const inputStyle = {
   background: "rgba(255,255,255,0.06)",
   border: "1px solid rgba(255,255,255,0.1)",
@@ -37,6 +94,12 @@ const SORT_OPTIONS = [
   { label: "Price ↑", value: "price" },
   { label: "Price ↓", value: "-price" },
   { label: "Name A-Z", value: "name" },
+];
+
+const STATUS_OPTIONS = [
+  { label: "All Status", value: "" },
+  { label: "✅ Active", value: "true" },
+  { label: "❌ Inactive", value: "false" },
 ];
 
 function ProductsPage() {
@@ -188,17 +251,8 @@ function ProductsPage() {
             placeholder="💰 Max price" type="number" min="0" style={{ ...inputStyle, width: "130px" }}
             onFocus={e => e.target.style.borderColor = "rgba(167,139,250,0.5)"}
             onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.1)"} />
-          <select value={active} onChange={(e) => setActive(e.target.value)} style={{ ...inputStyle, width: "130px" }}>
-            <option value="" style={{ background: "#1a1a2e" }}>All Status</option>
-            <option value="true" style={{ background: "#1a1a2e" }}>✅ Active</option>
-            <option value="false" style={{ background: "#1a1a2e" }}>❌ Inactive</option>
-          </select>
-          <select value={sort} onChange={(e) => setSort(e.target.value)} style={{ ...inputStyle, width: "130px" }}>
-            <option value="-createdAt" disabled hidden style={{ background: "#1a1a2e" }}>Sort by</option>
-            {SORT_OPTIONS.filter((o) => o.value !== "-createdAt").map((o) => (
-              <option key={o.value} value={o.value} style={{ background: "#1a1a2e" }}>{o.label}</option>
-            ))}
-          </select>
+          <CustomSelect value={active} onChange={setActive} options={STATUS_OPTIONS} placeholder="All Status" />
+          <CustomSelect value={sort} onChange={setSort} options={SORT_OPTIONS} placeholder="Sort by" />
           {hasFilters && (
             <button onClick={clearFilters} className="px-3 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95"
               style={{ background: "rgba(239,68,68,0.15)", color: "#f87171", border: "1px solid rgba(239,68,68,0.25)" }}>

@@ -35,10 +35,12 @@ export default function DashboardLayout({ children }) {
   ];
 
   // Breadcrumb segments
+  const noLink = new Set(["admin"]);
   const segments = pathname.split("/").filter(Boolean);
   const breadcrumbs = segments.map((seg, i) => ({
     label: seg.charAt(0).toUpperCase() + seg.slice(1),
     href: "/" + segments.slice(0, i + 1).join("/"),
+    clickable: !noLink.has(seg),
   }));
 
   return (
@@ -135,8 +137,8 @@ export default function DashboardLayout({ children }) {
           {breadcrumbs.map((b, i) => (
             <span key={b.href} className="flex items-center gap-1.5">
               {i > 0 && <span className="text-slate-700">/</span>}
-              {i === breadcrumbs.length - 1
-                ? <span className="text-slate-300 font-medium">{b.label}</span>
+              {i === breadcrumbs.length - 1 || !b.clickable
+                ? <span className={i === breadcrumbs.length - 1 ? "text-slate-300 font-medium" : "text-slate-500 cursor-default"}>{b.label}</span>
                 : <Link href={b.href} className="hover:text-slate-300 transition">{b.label}</Link>
               }
             </span>
