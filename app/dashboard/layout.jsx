@@ -27,15 +27,15 @@ export default function DashboardLayout({ children }) {
     { href: "/dashboard", label: "🏠 Dashboard" },
     { href: "/dashboard/products", label: "🛍️ Products" },
     ...(user?.role === "admin" ? [
-      { href: "/dashboard/admin/users", label: "👥 Users" },
-      { href: "/dashboard/admin/products", label: "📦 Products" },
+      { href: "/dashboard/admin/users", label: "👥 Manage Users" },
+      { href: "/dashboard/admin/products", label: "📦 Manage Products" },
     ] : []),
   ];
 
   return (
     <div className="min-h-screen">
       <header className="glass-dark sticky top-0 z-50 px-6 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 mr-8">
             <span className="text-2xl">⚡</span>
             <span className="text-gradient font-bold text-lg tracking-tight">NexDash</span>
@@ -77,7 +77,7 @@ export default function DashboardLayout({ children }) {
           </div>
         </div>
       </header>
-      <main className="max-w-7xl mx-auto p-6">{children}</main>
+      <main className="p-6">{children}</main>
     </div>
   );
 }
