@@ -169,7 +169,7 @@ function ProductsPage() {
       </div>
 
       {/* Filters */}
-      <div className="glass-card rounded-2xl p-4 space-y-3">
+      <div className="glass-card rounded-2xl p-4 space-y-3 sticky top-16 z-20">
         <input value={search} onChange={handleSearchInput}
           placeholder="🔍  Search products..." style={{ ...inputStyle, width: "100%" }}
           onFocus={e => { e.target.style.borderColor = "rgba(167,139,250,0.5)"; e.target.style.boxShadow = "0 0 0 3px rgba(167,139,250,0.1)"; }}
@@ -226,13 +226,12 @@ function ProductsPage() {
         </div>
       ) : products.length === 0 ? (
         <div className="glass-card rounded-3xl p-16 text-center">
-          <div className="text-6xl mb-4">📭</div>
-          <p className="text-slate-400 font-medium">No products found</p>
-          {hasFilters && (
-            <button onClick={clearFilters} className="mt-4 text-sm text-purple-400 hover:text-purple-300 transition">
-              Clear filters and try again
-            </button>
-          )}
+          <div className="text-6xl mb-4">{showFavOnly ? "💔" : "📭"}</div>
+          <p className="text-slate-400 font-medium">{showFavOnly ? "No favorites yet" : "No products found"}</p>
+          {showFavOnly
+            ? <button onClick={() => setShowFavOnly(false)} className="mt-4 text-sm text-pink-400 hover:text-pink-300 transition">Browse all products →</button>
+            : hasFilters && <button onClick={clearFilters} className="mt-4 text-sm text-purple-400 hover:text-purple-300 transition">Clear filters and try again</button>
+          }
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -247,6 +246,10 @@ function ProductsPage() {
                     ? <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     : <span className="text-5xl">📦</span>
                   }
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                    style={{ background: "rgba(0,0,0,0.45)" }}>
+                    <span className="text-white text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "rgba(124,58,237,0.7)", border: "1px solid rgba(167,139,250,0.4)" }}>View Details</span>
+                  </div>
                   <div className="absolute top-2 left-2">
                     <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
                       style={p.isActive

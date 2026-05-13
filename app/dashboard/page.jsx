@@ -4,6 +4,43 @@ import { useAuth } from "../../context/AuthContext";
 import Link from "next/link";
 import { getFavorites } from "../../lib/services";
 
+function useCountUp(target) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (typeof target !== "number" || isNaN(target)) return;
+    let start = 0;
+    const step = Math.ceil(target / (800 / 16));
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= target) { setCount(target); clearInterval(timer); }
+      else setCount(start);
+    }, 16);
+    return () => clearInterval(timer);
+  }, [target]);
+  return count;
+}
+
+function StatCard({ c }) {
+  const numVal = typeof c.value === "number" ? c.value : null;
+  const animated = useCountUp(numVal ?? 0);
+  const display = numVal !== null ? animated : c.value;
+
+  const inner = (
+    <>
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-3"
+        style={{ background: `linear-gradient(135deg, ${c.from}, ${c.to})` }}>
+        {c.emoji}
+      </div>
+      <p className="text-slate-500 text-xs font-medium uppercase tracking-wide">{c.label}</p>
+      <p className="text-white font-bold text-lg capitalize mt-0.5">{display}</p>
+    </>
+  );
+
+  return c.href
+    ? <Link href={c.href} className="glass-card rounded-2xl p-5 hover-lift block">{inner}</Link>
+    : <div className="glass-card rounded-2xl p-5 hover-lift">{inner}</div>;
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const [favCount, setFavCount] = useState(null);
@@ -35,23 +72,7 @@ export default function Dashboard() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {cards.map((c) => {
-          const inner = (
-            <>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-3"
-                style={{ background: `linear-gradient(135deg, ${c.from}, ${c.to})` }}>
-                {c.emoji}
-              </div>
-              <p className="text-slate-500 text-xs font-medium uppercase tracking-wide">{c.label}</p>
-              <p className="text-white font-bold text-lg capitalize mt-0.5">{c.value}</p>
-            </>
-          );
-          return c.href ? (
-            <Link key={c.label} href={c.href} className="glass-card rounded-2xl p-5 hover-lift block">{inner}</Link>
-          ) : (
-            <div key={c.label} className="glass-card rounded-2xl p-5 hover-lift">{inner}</div>
-          );
-        })}
+        {cards.map((c) => <StatCard key={c.label} c={c} />)}
       </div>
 
       {/* Admin Panel */}

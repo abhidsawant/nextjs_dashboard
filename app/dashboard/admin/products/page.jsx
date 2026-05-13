@@ -35,14 +35,15 @@ export default function AdminProducts() {
   const [search, setSearch] = useState("");
   const debounceRef = useRef(null);
   const LIMIT = 12;
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
-  const fetchProducts = (p = page, q = search) => {
+  const fetchProducts = (p = page, q = search, l = LIMIT) => {
     if (isFirstLoad.current) {
       setLoading(true);
     } else {
       setRefreshing(true);
     }
-    const params = { page: p, limit: LIMIT };
+    const params = { page: p, limit: l };
     if (q) params.q = q;
     getProducts(params)
       .then(({ data }) => {
@@ -126,6 +127,7 @@ export default function AdminProducts() {
     try {
       await deleteProduct(id);
       toast.success("Product deleted");
+      setConfirmDeleteId(null);
       fetchProducts(page, search);
     } catch {
       toast.error("Failed to delete product");
@@ -174,12 +176,7 @@ export default function AdminProducts() {
           <span className="text-2xl">📦</span>
           <h2 className="text-xl font-bold text-gradient">All Products</h2>
           {!loading && <span className="text-sm text-slate-500">({total} total)</span>}
-          <input
-            onChange={handleSearch}
-            placeholder="🔍  Search products..."
-            className="input-dark ml-auto"
-            style={{ width: "300px" }}
-          />
+          <input onChange={handleSearch} placeholder="🔍  Search products..." className="input-dark ml-auto" style={{ width: "220px" }} />
         </div>
         <div className="overflow-x-auto rounded-2xl scrollbar-dark relative" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
           {refreshing && (
@@ -266,10 +263,12 @@ export default function AdminProducts() {
                       <td className="px-4 py-3 font-semibold text-gradient">{p.currency} {p.price}</td>
                       <td className="px-4 py-3">
                         <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
-                          style={p.stock > 0
-                            ? { background: "rgba(16,185,129,0.15)", color: "#34d399" }
-                            : { background: "rgba(239,68,68,0.15)", color: "#f87171" }}>
-                          {p.stock > 0 ? `${p.stock} left` : "Out of stock"}
+                          style={p.stock === 0
+                            ? { background: "rgba(239,68,68,0.15)", color: "#f87171" }
+                            : p.stock < 5
+                            ? { background: "rgba(234,179,8,0.15)", color: "#fbbf24" }
+                            : { background: "rgba(16,185,129,0.15)", color: "#34d399" }}>
+                          {p.stock === 0 ? "Out of stock" : p.stock < 5 ? `⚠️ ${p.stock} left` : `${p.stock} left`}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -287,7 +286,7 @@ export default function AdminProducts() {
                             style={{ background: "rgba(234,179,8,0.15)", color: "#fbbf24", border: "1px solid rgba(234,179,8,0.25)" }}>
                             ✏️ Edit
                           </button>
-                          <button onClick={() => handleDelete(p._id)}
+                          <button onClick={() => setConfirmDeleteId(p._id)}
                             className="px-3 py-1 rounded-lg text-xs font-semibold transition active:scale-95"
                             style={{ background: "rgba(239,68,68,0.15)", color: "#f87171", border: "1px solid rgba(239,68,68,0.25)" }}>
                             🗑️ Delete
@@ -333,6 +332,29 @@ export default function AdminProducts() {
           </div>
         )}
       </div>
+
+      {/* Confirm Delete Modal */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+          <div className="glass-card rounded-3xl p-6 w-full max-w-sm mx-4 space-y-4">
+            <div className="text-center">
+              <div className="text-5xl mb-3">🗑️</div>
+              <h3 className="text-white font-bold text-lg">Delete Product?</h3>
+              <p className="text-slate-400 text-sm mt-1">This action cannot be undone.</p>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDeleteId(null)} className="flex-1 py-2 rounded-xl text-sm font-semibold transition active:scale-95"
+                style={{ background: "rgba(255,255,255,0.06)", color: "#94a3b8", border: "1px solid rgba(255,255,255,0.1)" }}>
+                Cancel
+              </button>
+              <button onClick={() => handleDelete(confirmDeleteId)} className="flex-1 py-2 rounded-xl text-sm font-semibold transition active:scale-95"
+                style={{ background: "rgba(239,68,68,0.2)", color: "#f87171", border: "1px solid rgba(239,68,68,0.35)" }}>
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
