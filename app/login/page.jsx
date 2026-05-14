@@ -33,6 +33,7 @@ function LoginForm() {
     setLoading(true);
     try {
       const { data } = await loginUser(form);
+      toast.success(data.message || "Login successful!");
       if (data.next === "verify-signup") {
         router.push(`/verify-otp?email=${encodeURIComponent(form.email)}&purpose=signup`);
       } else {

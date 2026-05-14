@@ -2,7 +2,47 @@
 import { useAuth, useRequireAuth } from "../../context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getDashboard } from "../../lib/services";
+
+// Map API menu paths to nav labels + emojis
+const NAV_META = {
+  "/dashboard":               "🏠 Dashboard",
+  "/dashboard/products":      "🛍️ Products",
+  "/dashboard/admin/users":   "👥 Manage Users",
+  "/dashboard/admin/products":"📦 Manage Products",
+};
+
+// Flatten nested menu into nav links we have pages for,
+// then always inject Products + admin product pages based on role
+function flattenMenu(menu = [], role) {
+  const links = [];
+  const seen = new Set();
+  const add = (href, label) => {
+    if (!seen.has(href)) { seen.add(href); links.push({ href, label }); }
+  };
+
+  // 1. Menu-driven links (from API response, skip Logout)
+  for (const item of menu) {
+    if (item.label === "Logout") continue;
+    if (NAV_META[item.path]) add(item.path, NAV_META[item.path]);
+    if (item.children) {
+      for (const child of item.children) {
+        if (NAV_META[child.path]) add(child.path, NAV_META[child.path]);
+      }
+    }
+  }
+
+  // 2. Role-based product links — always added based on role, never from menu
+  const dashIdx = links.findIndex((l) => l.href === "/dashboard");
+  const insertAt = dashIdx >= 0 ? dashIdx + 1 : links.length;
+  links.splice(insertAt, 0, { href: "/dashboard/products", label: "🛍️ Products" });
+  seen.add("/dashboard/products");
+
+  if (role === "admin") add("/dashboard/admin/products", "📦 Manage Products");
+
+  return links;
+}
 
 export default function DashboardLayout({ children }) {
   const { loading } = useRequireAuth();
@@ -10,6 +50,28 @@ export default function DashboardLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [navLinks, setNavLinks] = useState([]);
+  const [dbUser, setDbUser] = useState(null);
+
+  useEffect(() => {
+    if (loading) return;
+    getDashboard()
+      .then(({ data }) => {
+        setDbUser(data.user);
+        setNavLinks(flattenMenu(data.menu, data.user?.role));
+      })
+      .catch(() => {
+        // fallback to hardcoded nav if API fails
+        setNavLinks([
+          { href: "/dashboard", label: "🏠 Dashboard" },
+          { href: "/dashboard/products", label: "🛍️ Products" },
+          ...(user?.role === "admin" ? [
+            { href: "/dashboard/admin/users", label: "👥 Manage Users" },
+            { href: "/dashboard/admin/products", label: "📦 Manage Products" },
+          ] : []),
+        ]);
+      });
+  }, [loading]);
 
   const handleLogout = async () => {
     await logout();
@@ -25,14 +87,7 @@ export default function DashboardLayout({ children }) {
     </div>
   );
 
-  const navLinks = [
-    { href: "/dashboard", label: "🏠 Dashboard" },
-    { href: "/dashboard/products", label: "🛍️ Products" },
-    ...(user?.role === "admin" ? [
-      { href: "/dashboard/admin/users", label: "👥 Manage Users" },
-      { href: "/dashboard/admin/products", label: "📦 Manage Products" },
-    ] : []),
-  ];
+  const displayUser = dbUser || user;
 
   // Breadcrumb segments
   const noLink = new Set(["admin"]);
@@ -72,13 +127,19 @@ export default function DashboardLayout({ children }) {
 
           <div className="flex items-center gap-3">
             <div className="hidden sm:flex items-center gap-2 rounded-xl px-3 py-1.5" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <div className="w-7 h-7 gradient-primary rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                {user?.name?.[0]?.toUpperCase()}
+              <div className="relative">
+                <div className="w-7 h-7 gradient-primary rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                  {displayUser?.name?.[0]?.toUpperCase()}
+                </div>
+                {dbUser?.isVerified && (
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full flex items-center justify-center text-white"
+                    style={{ background: "linear-gradient(135deg, #059669, #0891b2)", fontSize: "7px" }}>✓</span>
+                )}
               </div>
               <div className="hidden sm:block">
-                <p className="text-white text-xs font-semibold leading-none">{user?.name}</p>
-                <p className={`text-xs capitalize leading-none mt-0.5 ${user?.role === "admin" ? "text-purple-400" : "text-blue-400"}`}>
-                  {user?.role}
+                <p className="text-white text-xs font-semibold leading-none">{displayUser?.name}</p>
+                <p className={`text-xs capitalize leading-none mt-0.5 ${displayUser?.role === "admin" ? "text-purple-400" : "text-blue-400"}`}>
+                  {displayUser?.role}
                 </p>
               </div>
             </div>
@@ -118,9 +179,9 @@ export default function DashboardLayout({ children }) {
             <div className="flex items-center justify-between mt-2 pt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 gradient-primary rounded-full flex items-center justify-center text-white text-xs font-bold">
-                  {user?.name?.[0]?.toUpperCase()}
+                  {displayUser?.name?.[0]?.toUpperCase()}
                 </div>
-                <span className="text-white text-xs font-semibold">{user?.name}</span>
+                <span className="text-white text-xs font-semibold">{displayUser?.name}</span>
               </div>
               <button onClick={handleLogout} className="text-xs font-medium px-3 py-1.5 rounded-xl"
                 style={{ background: "rgba(239,68,68,0.15)", color: "#f87171", border: "1px solid rgba(239,68,68,0.25)" }}>

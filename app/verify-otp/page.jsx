@@ -22,7 +22,7 @@ function OtpForm() {
     try {
       const { data } = await verifyOtp(endpoint, email, otp);
       saveSession(data.accessToken, data.refreshToken, data.user);
-      toast.success("Verified successfully!");
+      toast.success(data.message || "Verified successfully!");
       router.push(data.redirectTo || "/dashboard");
     } catch (err) {
       toast.error(err.response?.data?.message || "Invalid OTP");
@@ -33,8 +33,8 @@ function OtpForm() {
 
   const handleResend = async () => {
     try {
-      await resendOtp(email, purpose);
-      toast.success("OTP resent! Check your email.");
+      const res = await resendOtp(email, purpose);
+      toast.success(res.data.message || "OTP resent! Check your email.");
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to resend");
     }
